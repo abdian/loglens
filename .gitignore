@@ -1,0 +1,17 @@
+/vendor
+/node_modules
+composer.lock
+.phpunit.result.cache
+.phpunit.cache
+/tests/.tmp
+/build
+/storage
+.DS_Store
+Thumbs.db
+
+# macOS AppleDouble / metadata files (created on non-HFS volumes like exFAT/NTFS)
+._*
+.AppleDouble
+.LSOverride
+.Spotlight-V100
+.Trashes

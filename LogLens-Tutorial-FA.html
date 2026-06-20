@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LogLens — راهنمای استفاده</title>
+<style>
+  :root{
+    --bg:#0b0f14; --bg-2:#11171f; --bg-3:#161d27; --line:#222c39;
+    --fg:#e6edf3; --fg-dim:#9fb0c3; --fg-mut:#6b7c91;
+    --accent:#39d0d8; --accent-2:#7aa2ff; --green:#3fb950; --yellow:#d29922;
+    --red:#f85149; --purple:#bc8cff;
+    --mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+    --sans:"Segoe UI",Tahoma,system-ui,-apple-system,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--sans);
+    line-height:1.85;font-size:16px}
+  .wrap{display:grid;grid-template-columns:260px 1fr;max-width:1180px;margin:0 auto;gap:0}
+  /* Sidebar */
+  nav.toc{position:sticky;top:0;align-self:start;height:100vh;overflow:auto;
+    background:var(--bg-2);border-inline-start:1px solid var(--line);padding:26px 18px}
+  nav.toc .brand{display:flex;align-items:center;gap:10px;margin-bottom:22px}
+  nav.toc .brand .dot{width:30px;height:30px;border-radius:8px;
+    background:linear-gradient(135deg,var(--accent),var(--accent-2));
+    box-shadow:0 0 22px -4px var(--accent)}
+  nav.toc .brand b{font-size:18px;letter-spacing:.5px}
+  nav.toc a{display:block;color:var(--fg-dim);text-decoration:none;padding:7px 10px;
+    border-radius:8px;font-size:14.5px}
+  nav.toc a:hover{background:var(--bg-3);color:var(--fg)}
+  nav.toc .sec{color:var(--fg-mut);font-size:12px;text-transform:uppercase;
+    letter-spacing:1px;margin:18px 10px 6px}
+  /* Content */
+  main{padding:48px 44px 120px;max-width:860px}
+  .hero{padding:34px 36px;border-radius:18px;border:1px solid var(--line);
+    background:radial-gradient(900px 300px at 90% -20%,rgba(57,208,216,.16),transparent),var(--bg-2);
+    margin-bottom:38px}
+  .hero h1{margin:0 0 10px;font-size:34px;letter-spacing:.3px}
+  .hero p{margin:0;color:var(--fg-dim);font-size:17px}
+  .badges{margin-top:18px;display:flex;flex-wrap:wrap;gap:8px}
+  .badge{background:var(--bg-3);border:1px solid var(--line);color:var(--fg-dim);
+    padding:4px 12px;border-radius:999px;font-size:13px;font-family:var(--mono)}
+  .badge.ok{color:var(--green);border-color:#1d3826}
+  h2{font-size:25px;margin:46px 0 14px;padding-bottom:10px;border-bottom:1px solid var(--line)}
+  h2 .n{color:var(--accent);font-family:var(--mono);font-size:18px;margin-inline-end:8px}
+  h3{font-size:19px;margin:30px 0 10px;color:var(--fg)}
+  p,li{color:#cdd9e5}
+  a.inline{color:var(--accent-2)}
+  code{font-family:var(--mono);background:var(--bg-3);border:1px solid var(--line);
+    padding:1px 7px;border-radius:6px;font-size:13.5px;color:var(--accent);direction:ltr;
+    display:inline-block;unicode-bidi:embed}
+  pre{direction:ltr;text-align:left;background:#0d1219;border:1px solid var(--line);
+    border-radius:12px;padding:16px 18px;overflow:auto;font-family:var(--mono);
+    font-size:13.5px;line-height:1.7;position:relative}
+  pre .c{color:var(--fg-mut)}          /* comment */
+  pre .k{color:var(--purple)}          /* keyword */
+  pre .s{color:var(--green)}           /* string */
+  pre .f{color:var(--accent)}          /* function/cmd */
+  pre .v{color:var(--yellow)}          /* var */
+  .tag{display:inline-block;font-family:var(--mono);font-size:11px;padding:2px 8px;
+    border-radius:6px;border:1px solid var(--line);color:var(--fg-mut);margin-inline-start:8px}
+  .note{border-inline-start:3px solid var(--accent);background:var(--bg-2);
+    padding:14px 18px;border-radius:0 12px 12px 0;margin:18px 0;color:var(--fg-dim)}
+  .warn{border-inline-start-color:var(--yellow)}
+  .danger{border-inline-start-color:var(--red)}
+  table{width:100%;border-collapse:collapse;margin:18px 0;font-size:14.5px}
+  th,td{border:1px solid var(--line);padding:9px 12px;text-align:start}
+  th{background:var(--bg-3);color:var(--fg)}
+  td code{font-size:12.5px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin:18px 0}
+  .card{background:var(--bg-2);border:1px solid var(--line);border-radius:14px;padding:18px}
+  .card h4{margin:0 0 6px;color:var(--accent);font-size:15px}
+  .card p{margin:0;color:var(--fg-dim);font-size:14px}
+  .kbd{font-family:var(--mono);background:var(--bg-3);border:1px solid var(--line);
+    border-bottom-width:2px;border-radius:6px;padding:2px 8px;font-size:12.5px;color:var(--fg);direction:ltr;display:inline-block}
+  footer{margin-top:60px;padding-top:22px;border-top:1px solid var(--line);
+    color:var(--fg-mut);font-size:13.5px;text-align:center}
+  @media(max-width:820px){.wrap{grid-template-columns:1fr}nav.toc{display:none}main{padding:28px 20px 80px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<nav class="toc">
+  <div class="brand"><span class="dot"></span><b>LogLens</b></div>
+  <a href="#intro">معرفی</a>
+  <div class="sec">شروع</div>
+  <a href="#requirements">۱. پیش‌نیازها</a>
+  <a href="#install">۲. نصب</a>
+  <a href="#security">۳. امنیت و دسترسی</a>
+  <a href="#config">۴. پیکربندی</a>
+  <div class="sec">استفاده</div>
+  <a href="#ui">۵. کار با رابط کاربری</a>
+  <a href="#query">۶. زبان جستجو</a>
+  <a href="#tail">۷. Tail زنده</a>
+  <a href="#issues">۸. گروه‌بندی خطاها</a>
+  <a href="#cli">۹. دستورات خط فرمان</a>
+  <div class="sec">پیشرفته</div>
+  <a href="#api">۱۰. JSON API</a>
+  <a href="#production">۱۱. پروداکشن</a>
+  <a href="#troubleshoot">۱۲. عیب‌یابی</a>
+</nav>
+
+<main>
+  <div class="hero">
+    <h1>LogLens — راهنمای استفاده</h1>
+    <p>مشاهده‌گر لاگ در مقیاس پروداکشن برای Laravel: ایندکس دائمی روی دیسک، باز کردن آنی فایل‌های چندگیگابایتی، جستجوی Full-Text، tail زنده در مرورگر، گروه‌بندی خطاها و RTL.</p>
+    <div class="badges">
+      <span class="badge ok">Laravel 8–13</span>
+      <span class="badge ok">PHP 8.0–8.5</span>
+      <span class="badge ok">۹۴ تست سبز</span>
+      <span class="badge">بدون افزونه‌ی اجباری</span>
+      <span class="badge">v1.0.0</span>
+    </div>
+  </div>
+
+  <section id="intro">
+    <h2><span class="n">#</span>معرفی</h2>
+    <p>LogLens یک پکیج Laravel است که برخلاف ابزارهای موجود، ایندکس لاگ را به‌جای cache اپلیکیشن در یک <b>فایل SQLite کنار هر لاگ</b> روی دیسک نگه می‌دارد. نتیجه: باز شدن آنی فایل‌های بزرگ، جستجوی «یک‌بار ایندکس، بارها جستجو»، و مصونیت در برابر پاک شدن cache.</p>
+    <div class="grid">
+      <div class="card"><h4>باز کردن آنی</h4><p>جدیدترین ورودی‌ها با خواندن معکوس از انتهای فایل، بدون نیاز به ایندکس.</p></div>
+      <div class="card"><h4>جستجوی FTS5</h4><p>شتاب substring با توکنایزر trigram و یک زبان کوئری ساده.</p></div>
+      <div class="card"><h4>Tail زنده</h4><p>SSE با fallback خودکار به polling؛ بدون PCNTL، سازگار با ویندوز و Octane.</p></div>
+      <div class="card"><h4>گروه‌بندی خطا</h4><p>اثرانگشت قطعی برای exceptionها؛ نمای Issues مثل Sentry.</p></div>
+    </div>
+  </section>
+
+  <section id="requirements">
+    <h2><span class="n">۱</span>پیش‌نیازها</h2>
+    <table>
+      <tr><th>مورد</th><th>حداقل</th><th>توضیح</th></tr>
+      <tr><td>PHP</td><td><code>8.0+</code></td><td>تا ۸.۵ تست‌شده</td></tr>
+      <tr><td>Laravel</td><td><code>8 تا 13</code></td><td>ServiceProvider دستی، بدون migration</td></tr>
+      <tr><td>افزونه‌ها</td><td>—</td><td><code>pdo_sqlite</code>، <code>zlib</code>، <code>zip</code> اختیاری با fallback</td></tr>
+    </table>
+    <div class="note">اگر <code>pdo_sqlite</code> نباشد، LogLens به یک ایندکس باینری فشرده fallback می‌کند و باز هم کار می‌کند (فقط جستجو کندتر می‌شود).</div>
+  </section>
+
+  <section id="install">
+    <h2><span class="n">۲</span>نصب</h2>
+    <p>نصب واقعاً صفر-پیکربندی است؛ نه publish، نه migration، نه npm:</p>
+    <pre><span class="f">composer</span> require loglens/loglens</pre>
+    <p>حالا کافی است به آدرس زیر بروید (در محیط <code>local</code> به‌صورت پیش‌فرض باز است):</p>
+    <pre><span class="c"># مرورگر:</span>
+https://your-app.test/loglens</pre>
+    <p>برای انتشار اختیاریِ فایل پیکربندی:</p>
+    <pre><span class="f">php</span> artisan vendor:publish --tag=loglens-config</pre>
+    <div class="note">حذف کامل = حذف پکیج + پاک کردن پوشه‌ی <code>storage/loglens/</code>. هیچ باقی‌مانده‌ای (migration، جدول، cache key) نمی‌ماند.</div>
+  </section>
+
+  <section id="security">
+    <h2><span class="n">۳</span>امنیت و دسترسی</h2>
+    <p class="danger" style="padding:0"></p>
+    <div class="note danger"><b>مهم:</b> در محیط <b>غیرِ local</b>، LogLens به‌صورت پیش‌فرض همه‌ی درخواست‌ها را <b>۴۰۳</b> می‌کند تا وقتی gate را تعریف کنید. این یعنی production امن است مگر اینکه خودتان دسترسی بدهید.</div>
+    <p>در یک ServiceProvider (مثلاً <code>App\Providers\AppServiceProvider</code>) داخل متد <code>boot</code>:</p>
+    <pre><span class="k">use</span> Illuminate\Support\Facades\Gate;
+
+Gate::<span class="f">define</span>(<span class="s">'viewLogLens'</span>, <span class="k">function</span> (<span class="v">$user</span> = <span class="k">null</span>) {
+    <span class="k">return</span> in_array(optional(<span class="v">$user</span>)->email, [
+        <span class="s">'admin@example.com'</span>,
+    ]);
+});</pre>
+    <h3>کلیدهای کنترل دسترسی</h3>
+    <table>
+      <tr><th>Gate</th><th>کاربرد</th></tr>
+      <tr><td><code>viewLogLens</code></td><td>دسترسی کلی (وب/API/SSE یکسان)</td></tr>
+      <tr><td><code>downloadLogFile</code></td><td>دانلود فایل</td></tr>
+      <tr><td><code>deleteLogFile</code> / <code>clearLogFile</code></td><td>حذف / پاک‌سازی محتوا</td></tr>
+      <tr><td><code>pruneLogFiles</code></td><td>اجرای prune</td></tr>
+    </table>
+    <p>کلیدهای قطع سریع در config: <code>read_only</code>، <code>allow_delete</code>، <code>allow_clear</code>، <code>allow_download</code>. حذفِ secretها (توکن، APP_KEY، کلید AWS/Stripe، JWT، پسورد) به‌صورت پیش‌فرض <b>روشن</b> است.</p>
+  </section>
+
+  <section id="config">
+    <h2><span class="n">۴</span>پیکربندی</h2>
+    <p>مهم‌ترین کلیدهای <code>config/loglens.php</code>:</p>
+    <pre><span class="k">return</span> [
+  <span class="s">'roots'</span>   => [storage_path(<span class="s">'logs'</span>)],     <span class="c">// کجا دنبال لاگ بگردد</span>
+  <span class="s">'route'</span>   => [<span class="s">'prefix'</span> => <span class="s">'loglens'</span>, <span class="s">'middleware'</span> => [<span class="s">'web'</span>]],
+  <span class="s">'api_only'</span> => <span class="k">false</span>,                    <span class="c">// فقط API، بدون UI</span>
+  <span class="s">'read_only'</span> => <span class="k">false</span>,                   <span class="c">// قفل همه‌ی عملیات مخرب</span>
+  <span class="s">'index'</span> => [
+    <span class="s">'directory'</span>   => storage_path(<span class="s">'loglens'</span>),
+    <span class="s">'size_budget'</span> => <span class="s">'1G'</span>,                <span class="c">// سقف حجم ایندکس با حذف LRU</span>
+  ],
+  <span class="s">'security'</span> => [
+    <span class="s">'redaction'</span> => [<span class="s">'enabled'</span> => <span class="k">true</span>],  <span class="c">// حذف secret هنگام نمایش</span>
+  ],
+  <span class="s">'editor'</span> => [<span class="s">'default'</span> => <span class="s">'phpstorm'</span>],   <span class="c">// لینک باز کردن فریم در ادیتور</span>
+  <span class="s">'locale'</span> => [<span class="s">'default'</span> => <span class="k">null</span>],          <span class="c">// null = خودکار از app locale</span>
+];</pre>
+    <div class="note">فرمت‌های سفارشی را بدون نوشتن کلاس PHP می‌توانید فقط با یک regex در کلید <code>parsing.custom</code> اضافه کنید. جزئیات کامل در <code>docs/configuration.md</code>.</div>
+  </section>
+
+  <section id="ui">
+    <h2><span class="n">۵</span>کار با رابط کاربری</h2>
+    <p>چیدمان سه‌پنلی شبیه IDE:</p>
+    <ul>
+      <li><b>سایدبار (راست):</b> فایل‌ها/پوشه‌ها، فیلتر سطح‌ها با شمارش، و تب Issues.</li>
+      <li><b>ستون مرکزی:</b> نوار جستجو، هیستوگرام حجم لاگ، و لیست مجازی‌سازی‌شده‌ی ورودی‌ها.</li>
+      <li><b>کشوی جزئیات (چپ):</b> متن خام، فیلدهای پارس‌شده، درخت JSON، و stack trace با لینک ادیتور.</li>
+    </ul>
+    <h3>میان‌برهای کیبورد</h3>
+    <table>
+      <tr><th>کلید</th><th>کار</th><th>کلید</th><th>کار</th></tr>
+      <tr><td><span class="kbd">Ctrl/Cmd+K</span></td><td>پالت فرمان</td><td><span class="kbd">/</span></td><td>فوکوس جستجو</td></tr>
+      <tr><td><span class="kbd">j</span> / <span class="kbd">k</span></td><td>ردیف بعد/قبل</td><td><span class="kbd">g g</span> / <span class="kbd">G</span></td><td>بالا / پایین</td></tr>
+      <tr><td><span class="kbd">e</span> / <span class="kbd">E</span></td><td>خطای بعد/قبل</td><td><span class="kbd">w</span> / <span class="kbd">W</span></td><td>هشدار بعد/قبل</td></tr>
+      <tr><td><span class="kbd">Enter</span></td><td>باز کردن جزئیات</td><td><span class="kbd">Esc</span></td><td>بستن</td></tr>
+    </table>
+  </section>
+
+  <section id="query">
+    <h2><span class="n">۶</span>زبان جستجو</h2>
+    <p>همین زبان در UI، API، و دستورات CLI کار می‌کند.</p>
+    <table>
+      <tr><th>الگو</th><th>مثال</th><th>معنی</th></tr>
+      <tr><td>عبارت ساده</td><td><code>payment failed</code></td><td>هر دو کلمه (AND ضمنی)</td></tr>
+      <tr><td>عبارت دقیق</td><td><code>"payment failed"</code></td><td>عین عبارت</td></tr>
+      <tr><td>سطح</td><td><code>level:error</code></td><td>فقط error</td></tr>
+      <tr><td>مقایسه سطح</td><td><code>level:&gt;=warning</code></td><td>warning به بالا</td></tr>
+      <tr><td>زمان نسبی</td><td><code>after:-1h</code></td><td>یک ساعت اخیر</td></tr>
+      <tr><td>زمان مطلق</td><td><code>before:2026-06-01</code></td><td>قبل از تاریخ</td></tr>
+      <tr><td>فیلد</td><td><code>channel:horizon</code></td><td>کانال خاص</td></tr>
+      <tr><td>نفی</td><td><code>-channel:horizon</code></td><td>به‌جز این کانال</td></tr>
+      <tr><td>OR و پرانتز</td><td><code>(a OR b) c</code></td><td>گروه‌بندی</td></tr>
+      <tr><td>wildcard</td><td><code>connect*</code></td><td>پیشوند</td></tr>
+      <tr><td>regex</td><td><code>/timeout|refused/i</code></td><td>regex با flag</td></tr>
+    </table>
+    <p>یک کوئری کامل:</p>
+    <pre>level:error after:-1h <span class="s">"payment failed"</span> -channel:horizon</pre>
+    <div class="note">پیش‌فرض، جستجو <b>literal</b> است (نه regex)؛ پس <code>[error] (1.5)</code> دقیقاً همان متن جستجو می‌شود.</div>
+  </section>
+
+  <section id="tail">
+    <h2><span class="n">۷</span>Tail زنده</h2>
+    <p>در UI دکمه‌ی <b>Live</b> را بزنید تا ورودی‌های جدید لحظه‌ای بیایند. زیر کاپوت: ابتدا SSE تلاش می‌شود؛ اگر یک proxy بافر کند یا Octane باشد، خودکار به polling سوییچ می‌کند — بدون از دست رفتن یا تکرار ورودی. می‌توانید tail را با زبان جستجو فیلتر کنید (مثلاً فقط <code>level:&gt;=error</code>).</p>
+  </section>
+
+  <section id="issues">
+    <h2><span class="n">۸</span>گروه‌بندی خطاها (Issues)</h2>
+    <p>به‌جای ۱۴۳۲ ردیف تکراری، یک ردیف با شمارش، اولین/آخرین رخداد و sparkline می‌بینید. اثرانگشت‌ها هنگام ایندکس و قطعی محاسبه می‌شوند، پس یک خطا روی فایل‌های روزانه‌ی مختلف هم در یک گروه جمع می‌شود. با «New since» می‌توانید خطاهای جدید بعد از یک deploy را ببینید.</p>
+  </section>
+
+  <section id="cli">
+    <h2><span class="n">۹</span>دستورات خط فرمان</h2>
+    <pre><span class="c"># ساخت/به‌روزرسانی ایندکس همه‌ی فایل‌ها (مثلاً در deploy hook)</span>
+<span class="f">php</span> artisan loglens:index
+<span class="f">php</span> artisan loglens:index --watch          <span class="c"># حلقه‌ی پیوسته</span>
+
+<span class="c"># جستجو با همان زبان کوئری</span>
+<span class="f">php</span> artisan loglens:search <span class="s">"level:error after:-24h timeout"</span> --json
+
+<span class="c"># tail زنده در ترمینال (روی ویندوز هم کار می‌کند)</span>
+<span class="f">php</span> artisan loglens:tail --query=<span class="s">"level:&gt;=warning"</span>
+
+<span class="c"># خلاصه‌ی آماری هر فایل</span>
+<span class="f">php</span> artisan loglens:stats
+
+<span class="c"># نگه‌داری: حذف/فشرده‌سازی لاگ‌های قدیمی</span>
+<span class="f">php</span> artisan loglens:prune --days=30 --max-total-size=10G --compress</pre>
+    <p>برای زمان‌بندی prune در <code>routes/console.php</code> (یا Kernel):</p>
+    <pre>Schedule::<span class="f">command</span>(<span class="s">'loglens:prune --days=30'</span>)->daily();</pre>
+  </section>
+
+  <section id="api">
+    <h2><span class="n">۱۰</span>JSON API</h2>
+    <p>تمام قابلیت‌های UI از طریق API هم در دسترس‌اند (زیرِ <code>/loglens/api</code>). چند نمونه:</p>
+    <pre><span class="f">GET</span>  /loglens/api/files
+<span class="f">GET</span>  /loglens/api/files/{id}/open
+<span class="f">GET</span>  /loglens/api/files/{id}/search?q=payment+level:error
+<span class="f">GET</span>  /loglens/api/files/{id}/groups
+<span class="f">GET</span>  /loglens/api/files/{id}/histogram
+<span class="f">GET</span>  /loglens/api/tail/poll?file={id}&amp;cursors={...}
+<span class="f">GET</span>  /loglens/api/diagnostics</pre>
+    <p>با <code>api_only=true</code> می‌توانید UI را کاملاً خاموش و فقط API را فعال نگه دارید. مرجع کامل: <code>docs/api.md</code>.</p>
+  </section>
+
+  <section id="production">
+    <h2><span class="n">۱۱</span>نکات پروداکشن</h2>
+    <ul>
+      <li><b>gate را تعریف کنید</b> وگرنه production همه‌چیز را ۴۰۳ می‌کند (همین که می‌خواهید).</li>
+      <li><b>درایور cache سالم</b> داشته باشید (<code>file</code>/<code>redis</code>/<code>array</code> یا <code>database</code>ِ migrate‌شده) — endpointهای rate-limit‌شده (search/tail/index) به آن نیاز دارند. مرور لاگ حتی با cache خراب کار می‌کند.</li>
+      <li><b>ایندکس پس‌زمینه:</b> اگر queue worker زنده باشد از job استفاده می‌شود؛ وگرنه scheduler؛ وگرنه ایندکس in-request زمان‌دار. برای deploy از <code>loglens:index</code> استفاده کنید.</li>
+      <li><b>کانتینرها:</b> لاگ را هم‌زمان به stderr و یک فایل بفرستید (نسخه‌ی dual-channel در <code>docs/deployment.md</code>).</li>
+      <li><b>Octane:</b> بدون state اشتراکی است؛ tail خودکار به polling می‌رود.</li>
+    </ul>
+    <div class="note warn"><b>هشدار نسخه‌ی لاراول:</b> اگر هنگام نصب با خطای security advisory برخوردید (<code>PKSA-…</code>)، این سمت لاراول است نه LogLens؛ به آخرین نسخه‌ی patch‌شده‌ی لاراول بروید یا <code>composer audit</code> بگیرید.</div>
+  </section>
+
+  <section id="troubleshoot">
+    <h2><span class="n">۱۲</span>عیب‌یابی</h2>
+    <table>
+      <tr><th>نشانه</th><th>علت / راه‌حل</th></tr>
+      <tr><td>همه‌ی روت‌ها ۴۰۳</td><td>gate <code>viewLogLens</code> تعریف نشده (در production درست است). تعریفش کنید.</td></tr>
+      <tr><td>search/tail خطای ۵۰۰</td><td>درایور cache میزبان خراب است (مثلاً <code>database</code> بدون migration). یک cache سالم تنظیم کنید.</td></tr>
+      <tr><td>فایل در حالت <code>building</code> می‌ماند</td><td>queue/scheduler نیست؛ یک‌بار <code>php artisan loglens:index</code> بزنید.</td></tr>
+      <tr><td>جستجوی substring کند است</td><td>SQLite بدون trigram؛ پنل diagnostics لایه‌ی فعال را نشان می‌دهد.</td></tr>
+      <tr><td>tail چیزی نشان نمی‌دهد</td><td>proxy بافر می‌کند؛ کلاینت خودکار به polling می‌رود (پنل diagnostics را ببینید).</td></tr>
+    </table>
+    <p>پنل تشخیص: <code>/loglens/api/diagnostics</code> — نسخه، درایور ایندکس، لایه‌ی جستجو، و وضعیت runtime را نشان می‌دهد.</p>
+  </section>
+
+  <footer>
+    LogLens v1.0.0 — Laravel 8–13 · PHP 8.0–8.5 · MIT.<br>
+    مستندات کامل در پوشه‌ی <code>docs/</code> · مرجع امنیتی در <code>docs/security-checklist.md</code>
+  </footer>
+</main>
+</div>
+</body>
+</html>

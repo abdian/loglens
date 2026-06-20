@@ -1,0 +1,594 @@
+/* LogLens — Design system CSS
+   Dark-default, light and system themes via CSS variables.
+   Uses only CSS logical properties (margin-inline-start, etc.)
+   for true RTL support. JetBrains Mono for log content.
+*/
+
+/* Fonts come from the system stack (see the font-family declarations below:
+   Inter → system sans, JetBrains Mono → ui-monospace/SFMono/Menlo…). No external
+   @import: a render-blocking Google Fonts request delays first paint and breaks
+   offline / air-gapped / strict-CSP deployments. To ship the branded fonts,
+   self-host them as @font-face WOFF2 right here. */
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* =====================================================================
+   Design Tokens — CSS Custom Properties
+   ===================================================================== */
+
+/* Dark theme (default) */
+:root,
+[data-theme="dark"] {
+  color-scheme: dark;
+
+  /* Surfaces */
+  --ll-surface:         #0a0d13;
+  --ll-surface-raised:  #10141c;
+  --ll-surface-overlay: #1a2030;
+  --ll-surface-sunken:  #070a0f;
+
+  /* Borders */
+  --ll-border:          #232b3a;
+  --ll-border-subtle:   #161c28;
+
+  /* Text */
+  --ll-text:            #e7ebf3;
+  --ll-text-muted:      #97a2b6;
+  --ll-text-faint:      #5a6477;
+
+  /* Accent (indigo) */
+  --ll-accent:          #7c8cff;
+  --ll-accent-hover:    #9aa7ff;
+  --ll-accent-bg:       rgba(124, 140, 255, 0.14);
+  --ll-accent-glow:     rgba(124, 140, 255, 0.25);
+
+  /* Log level colors */
+  --ll-level-debug:     #7c8696;
+  --ll-level-info:      #5b9bff;
+  --ll-level-notice:    #34d399;
+  --ll-level-warning:   #f5b13d;
+  --ll-level-error:     #fb6a82;
+  --ll-level-critical:  #e5384e; /* deeper red — distinct from error's lighter rose */
+  --ll-level-alert:     #fb923c;
+  --ll-level-emergency: #c763e6; /* violet — clearly set apart from the red family */
+
+  /* Level background (subtle tint for badges/rows) */
+  --ll-level-debug-bg:     rgba(124, 134, 150, 0.14);
+  --ll-level-info-bg:      rgba(91, 155, 255, 0.15);
+  --ll-level-notice-bg:    rgba(52, 211, 153, 0.15);
+  --ll-level-warning-bg:   rgba(245, 177, 61, 0.16);
+  --ll-level-error-bg:     rgba(251, 106, 130, 0.16);
+  --ll-level-critical-bg:  rgba(229, 56, 78, 0.18);
+  --ll-level-alert-bg:     rgba(251, 146, 60, 0.16);
+  --ll-level-emergency-bg: rgba(199, 99, 230, 0.18);
+
+  /* Scrollbar */
+  --ll-scrollbar-track: transparent;
+  --ll-scrollbar-thumb: #2a3344;
+  --ll-scrollbar-thumb-hover: #3a4760;
+
+  /* Chart */
+  --ll-chart-bg: transparent;
+  --ll-chart-grid: #1b2230;
+
+  /* Elevation + radii */
+  --ll-radius:    8px;
+  --ll-radius-sm: 6px;
+  --ll-shadow:    0 8px 30px rgba(0, 0, 0, 0.45);
+  --ll-shadow-sm: 0 2px 10px rgba(0, 0, 0, 0.30);
+}
+
+/* Light theme */
+[data-theme="light"] {
+  color-scheme: light;
+
+  --ll-surface:         #ffffff;
+  --ll-surface-raised:  #f7f8fa;
+  --ll-surface-overlay: #eceef2;
+  --ll-surface-sunken:  #f0f2f5;
+
+  --ll-border:          #dce0e8;
+  --ll-border-subtle:   #eceef2;
+
+  --ll-text:            #1a1f29;
+  --ll-text-muted:      #5c6675;
+  --ll-text-faint:      #aab2c0;
+
+  --ll-accent:          #5b63d6;
+  --ll-accent-hover:    #474fc0;
+  --ll-accent-bg:       rgba(91, 99, 214, 0.10);
+  --ll-accent-glow:     rgba(91, 99, 214, 0.18);
+
+  --ll-level-debug:     #5c6675;
+  --ll-level-info:      #2563eb;
+  --ll-level-notice:    #15803d;
+  --ll-level-warning:   #b45309;
+  --ll-level-error:     #e11d48;
+  --ll-level-critical:  #be123c;
+  --ll-level-alert:     #c2410c;
+  --ll-level-emergency: #a21caf;
+
+  --ll-level-debug-bg:     rgba(92, 102, 117, 0.10);
+  --ll-level-info-bg:      rgba(37, 99, 235, 0.10);
+  --ll-level-notice-bg:    rgba(21, 128, 61, 0.10);
+  --ll-level-warning-bg:   rgba(180, 83, 9, 0.12);
+  --ll-level-error-bg:     rgba(225, 29, 72, 0.10);
+  --ll-level-critical-bg:  rgba(190, 18, 60, 0.12);
+  --ll-level-alert-bg:     rgba(194, 65, 12, 0.10);
+  --ll-level-emergency-bg: rgba(162, 28, 175, 0.12);
+
+  --ll-scrollbar-track: transparent;
+  --ll-scrollbar-thumb: #cfd5de;
+  --ll-scrollbar-thumb-hover: #aab2c0;
+
+  --ll-chart-bg: transparent;
+  --ll-chart-grid: #eceef2;
+
+  --ll-radius:    8px;
+  --ll-radius-sm: 6px;
+  --ll-shadow:    0 8px 30px rgba(15, 23, 42, 0.12);
+  --ll-shadow-sm: 0 2px 10px rgba(15, 23, 42, 0.08);
+}
+
+/* System theme — inherits dark tokens by default, overrides for light OS */
+[data-theme="system"] {
+  color-scheme: light dark;
+}
+@media (prefers-color-scheme: light) {
+  [data-theme="system"] {
+    color-scheme: light;
+
+    --ll-surface:         #ffffff;
+    --ll-surface-raised:  #f7f8fa;
+    --ll-surface-overlay: #eceef2;
+    --ll-surface-sunken:  #f0f2f5;
+    --ll-border:          #dce0e8;
+    --ll-border-subtle:   #eceef2;
+    --ll-text:            #1a1f29;
+    --ll-text-muted:      #5c6675;
+    --ll-text-faint:      #aab2c0;
+    --ll-accent:          #5b63d6;
+    --ll-accent-hover:    #474fc0;
+    --ll-accent-bg:       rgba(91, 99, 214, 0.10);
+    --ll-accent-glow:     rgba(91, 99, 214, 0.18);
+    --ll-level-debug:     #5c6675;
+    --ll-level-info:      #2563eb;
+    --ll-level-notice:    #15803d;
+    --ll-level-warning:   #b45309;
+    --ll-level-error:     #e11d48;
+    --ll-level-critical:  #be123c;
+    --ll-level-alert:     #c2410c;
+    --ll-level-emergency: #a21caf;
+    --ll-level-debug-bg:     rgba(92, 102, 117, 0.10);
+    --ll-level-info-bg:      rgba(37, 99, 235, 0.10);
+    --ll-level-notice-bg:    rgba(21, 128, 61, 0.10);
+    --ll-level-warning-bg:   rgba(180, 83, 9, 0.12);
+    --ll-level-error-bg:     rgba(225, 29, 72, 0.10);
+    --ll-level-critical-bg:  rgba(190, 18, 60, 0.12);
+    --ll-level-alert-bg:     rgba(194, 65, 12, 0.10);
+    --ll-level-emergency-bg: rgba(162, 28, 175, 0.12);
+    --ll-scrollbar-thumb: #cfd5de;
+    --ll-scrollbar-thumb-hover: #aab2c0;
+    --ll-chart-grid: #eceef2;
+    --ll-shadow:    0 8px 30px rgba(15, 23, 42, 0.12);
+    --ll-shadow-sm: 0 2px 10px rgba(15, 23, 42, 0.08);
+  }
+}
+
+/* =====================================================================
+   Base Styles
+   ===================================================================== */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+}
+
+body.loglens-body {
+  margin: 0;
+  padding: 0;
+  background-color: var(--ll-surface);
+  color: var(--ll-text);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow: hidden;
+  height: 100vh;
+  width: 100vw;
+}
+
+#loglens-app {
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* =====================================================================
+   Custom Scrollbars
+   ===================================================================== */
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--ll-scrollbar-thumb) var(--ll-scrollbar-track);
+}
+
+*::-webkit-scrollbar {
+  width: 9px;
+  height: 9px;
+}
+
+*::-webkit-scrollbar-track {
+  background: var(--ll-scrollbar-track);
+}
+
+*::-webkit-scrollbar-thumb {
+  background: var(--ll-scrollbar-thumb);
+  border-radius: 6px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: var(--ll-scrollbar-thumb-hover);
+  background-clip: padding-box;
+  border: 2px solid transparent;
+}
+
+/* =====================================================================
+   Log Content — Force LTR even inside RTL chrome
+   ===================================================================== */
+
+.ll-log-content,
+.ll-code,
+.ll-stack-trace,
+.ll-raw-entry,
+pre,
+code {
+  direction: ltr !important;
+  unicode-bidi: isolate;
+  font-family: 'JetBrains Mono', 'JetBrains Mono Variable', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+}
+
+/* =====================================================================
+   ANSI Color Classes (server pre-renders these)
+   ===================================================================== */
+
+.ansi-bold { font-weight: 700; }
+.ansi-dim  { opacity: 0.6; }
+.ansi-italic { font-style: italic; }
+.ansi-underline { text-decoration: underline; }
+
+/* Foreground */
+.ansi-fg-black        { color: #4d4d4d; }
+.ansi-fg-red          { color: #fb6a82; }
+.ansi-fg-green        { color: #34d399; }
+.ansi-fg-yellow       { color: #f5b13d; }
+.ansi-fg-blue         { color: #5b9bff; }
+.ansi-fg-magenta      { color: #c4a5ff; }
+.ansi-fg-cyan         { color: #4dd4dc; }
+.ansi-fg-white        { color: #e7ebf3; }
+.ansi-fg-bright-black   { color: #7c8696; }
+.ansi-fg-bright-red     { color: #ff8a9b; }
+.ansi-fg-bright-green   { color: #5ee6a8; }
+.ansi-fg-bright-yellow  { color: #ffc861; }
+.ansi-fg-bright-blue    { color: #84b4ff; }
+.ansi-fg-bright-magenta { color: #d6bbff; }
+.ansi-fg-bright-cyan    { color: #6fe3eb; }
+.ansi-fg-bright-white   { color: #ffffff; }
+
+/* Background */
+.ansi-bg-black        { background: #4d4d4d; }
+.ansi-bg-red          { background: #fb6a82; }
+.ansi-bg-green        { background: #34d399; }
+.ansi-bg-yellow       { background: #f5b13d; }
+.ansi-bg-blue         { background: #5b9bff; }
+.ansi-bg-magenta      { background: #c4a5ff; }
+.ansi-bg-cyan         { background: #4dd4dc; }
+.ansi-bg-white        { background: #e7ebf3; }
+
+/* Light theme ANSI overrides */
+[data-theme="light"] .ansi-fg-black        { color: #24292f; }
+[data-theme="light"] .ansi-fg-red          { color: #e11d48; }
+[data-theme="light"] .ansi-fg-green        { color: #15803d; }
+[data-theme="light"] .ansi-fg-yellow       { color: #b45309; }
+[data-theme="light"] .ansi-fg-blue         { color: #2563eb; }
+[data-theme="light"] .ansi-fg-magenta      { color: #8250df; }
+[data-theme="light"] .ansi-fg-cyan         { color: #1b7c83; }
+[data-theme="light"] .ansi-fg-white        { color: #1a1f29; }
+
+/* =====================================================================
+   Level Badge / Pill
+   ===================================================================== */
+
+.ll-level-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px 7px;
+  border-radius: 5px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  font-family: 'JetBrains Mono', monospace;
+  white-space: nowrap;
+  min-width: 62px;
+  line-height: 1.3;
+}
+
+.ll-level-debug     { color: var(--ll-level-debug);     background: var(--ll-level-debug-bg); }
+.ll-level-info      { color: var(--ll-level-info);      background: var(--ll-level-info-bg); }
+.ll-level-notice    { color: var(--ll-level-notice);    background: var(--ll-level-notice-bg); }
+.ll-level-warning   { color: var(--ll-level-warning);   background: var(--ll-level-warning-bg); }
+.ll-level-error     { color: var(--ll-level-error);     background: var(--ll-level-error-bg); }
+.ll-level-critical  { color: var(--ll-level-critical);  background: var(--ll-level-critical-bg); }
+.ll-level-alert     { color: var(--ll-level-alert);     background: var(--ll-level-alert-bg); }
+.ll-level-emergency { color: var(--ll-level-emergency); background: var(--ll-level-emergency-bg); }
+
+/* Level left border for entry rows */
+.ll-entry-row--debug     { box-shadow: inset 3px 0 0 var(--ll-level-debug); }
+.ll-entry-row--info      { box-shadow: inset 3px 0 0 var(--ll-level-info); }
+.ll-entry-row--notice    { box-shadow: inset 3px 0 0 var(--ll-level-notice); }
+.ll-entry-row--warning   { box-shadow: inset 3px 0 0 var(--ll-level-warning); }
+.ll-entry-row--error     { box-shadow: inset 3px 0 0 var(--ll-level-error); }
+.ll-entry-row--critical  { box-shadow: inset 3px 0 0 var(--ll-level-critical); }
+.ll-entry-row--alert     { box-shadow: inset 3px 0 0 var(--ll-level-alert); }
+.ll-entry-row--emergency { box-shadow: inset 3px 0 0 var(--ll-level-emergency); }
+
+/* =====================================================================
+   Search Highlight
+   ===================================================================== */
+
+.ll-highlight {
+  background-color: rgba(245, 177, 61, 0.35);
+  color: inherit;
+  border-radius: 2px;
+  padding: 0 1px;
+}
+
+[data-theme="light"] .ll-highlight {
+  background-color: rgba(180, 83, 9, 0.25);
+}
+
+/* =====================================================================
+   Scrollbar Minimap
+   ===================================================================== */
+
+.ll-minimap {
+  position: absolute;
+  inset-inline-end: 0;
+  inset-block: 0;
+  width: 8px;
+  background: var(--ll-surface-sunken);
+  z-index: 10;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.ll-minimap__mark {
+  position: absolute;
+  inset-inline: 1px;
+  min-height: 2px;
+  border-radius: 1px;
+  opacity: 0.85;
+}
+
+.ll-minimap__mark--error { background: var(--ll-level-error); }
+.ll-minimap__mark--warning { background: var(--ll-level-warning); }
+.ll-minimap__mark--critical { background: var(--ll-level-critical); }
+.ll-minimap__mark--alert { background: var(--ll-level-alert); }
+.ll-minimap__mark--emergency { background: var(--ll-level-emergency); }
+
+/* =====================================================================
+   RTL Logical Property Utilities (supplement Tailwind)
+   ===================================================================== */
+
+.ms-auto  { margin-inline-start: auto; }
+.me-auto  { margin-inline-end: auto; }
+.ps-1     { padding-inline-start: 0.25rem; }
+.ps-2     { padding-inline-start: 0.5rem; }
+.ps-3     { padding-inline-start: 0.75rem; }
+.ps-4     { padding-inline-start: 1rem; }
+.pe-1     { padding-inline-end: 0.25rem; }
+.pe-2     { padding-inline-end: 0.5rem; }
+.pe-3     { padding-inline-end: 0.75rem; }
+.pe-4     { padding-inline-end: 1rem; }
+
+/* =====================================================================
+   Transitions & Focus Ring
+   ===================================================================== */
+
+.ll-focus-ring:focus-visible,
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid var(--ll-accent);
+  outline-offset: 2px;
+}
+
+.ll-transition {
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease, opacity 0.15s ease;
+}
+
+/* =====================================================================
+   Pane Splitter
+   ===================================================================== */
+
+.ll-splitter {
+  width: 4px;
+  cursor: col-resize;
+  background: var(--ll-border-subtle);
+  flex-shrink: 0;
+  transition: background 0.15s;
+}
+
+.ll-splitter:hover,
+.ll-splitter.active {
+  background: var(--ll-accent);
+}
+
+/* =====================================================================
+   Overlay / Backdrop
+   ===================================================================== */
+
+.ll-overlay-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(3, 6, 12, 0.6);
+  backdrop-filter: blur(3px);
+  z-index: 40;
+}
+
+/* =====================================================================
+   Toast Notifications
+   ===================================================================== */
+
+.ll-toast-container {
+  position: fixed;
+  inset-block-end: 1.5rem;
+  inset-inline-end: 1.5rem;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  pointer-events: none;
+}
+
+.ll-toast {
+  pointer-events: all;
+  background: var(--ll-surface-overlay);
+  border: 1px solid var(--ll-border);
+  border-radius: 10px;
+  padding: 0.7rem 1rem;
+  font-size: 13px;
+  color: var(--ll-text);
+  box-shadow: var(--ll-shadow);
+  max-width: 360px;
+  animation: ll-slide-up 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.ll-toast--error   { border-inline-start: 3px solid var(--ll-level-error); }
+.ll-toast--success { border-inline-start: 3px solid var(--ll-level-notice); }
+.ll-toast--warn    { border-inline-start: 3px solid var(--ll-level-warning); }
+
+@keyframes ll-slide-up {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes ll-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* =====================================================================
+   uPlot overrides for design token integration
+   ===================================================================== */
+
+.uplot canvas {
+  border-radius: 4px;
+}
+
+.u-legend {
+  font-size: 11px;
+  color: var(--ll-text-muted);
+}
+
+/* =====================================================================
+   Responsive / mobile layout
+   On narrow screens the sidebar and detail panes become off-canvas
+   overlays instead of fixed columns, toggled from the top bar.
+   ===================================================================== */
+
+/* Mobile-only top-bar hamburger; hidden on desktop. */
+.ll-topbar__menu-btn {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: none;
+  color: var(--ll-text-muted);
+  border-radius: 6px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.ll-topbar__menu-btn:hover { background: var(--ll-surface-overlay); color: var(--ll-text); }
+
+.ll-mobile-backdrop {
+  position: fixed;
+  inset: 48px 0 0 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 55;
+  animation: ll-fade-in 0.15s ease;
+}
+
+@media (max-width: 820px) {
+  /* Top bar: drop labels/badges so the actions fit. */
+  .ll-topbar { padding: 0 8px; gap: 4px; }
+  .ll-topbar__menu-btn { display: inline-flex; }
+  .ll-topbar__btn-label,
+  .ll-topbar__kbd { display: none; }
+  .ll-index-status { display: none; }
+
+  /* Sidebar → off-canvas drawer (slides in from the inline-start edge). */
+  .ll-app .ll-sidebar {
+    position: fixed;
+    inset-block: 48px 0;
+    inset-inline-start: 0;
+    width: 286px !important;
+    min-width: 286px !important;
+    max-width: 86vw;
+    z-index: 60;
+    transition: transform 0.22s ease;
+    box-shadow: 8px 0 28px rgba(0, 0, 0, 0.45);
+  }
+  .ll-app .ll-sidebar--collapsed {
+    transform: translateX(-100%);
+    width: 286px !important;
+    min-width: 286px !important;
+  }
+  /* The drawer is hidden by sliding off-screen, so keep its content rendered. */
+  .ll-app .ll-sidebar--collapsed .ll-sidebar__content { display: flex; }
+
+  /* RTL: drawer lives on the right and hides to the right. */
+  .ll-app--rtl .ll-sidebar { inset-inline-start: auto; inset-inline-end: 0; box-shadow: -8px 0 28px rgba(0,0,0,0.45); }
+  .ll-app--rtl .ll-sidebar--collapsed { transform: translateX(100%); }
+
+  /* Detail → full-screen overlay. */
+  .ll-app .ll-detail-pane {
+    position: fixed;
+    inset: 48px 0 0 0;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    z-index: 70;
+    transform: translateX(100%);
+    transition: transform 0.22s ease;
+  }
+  .ll-app .ll-detail-pane--open { transform: translateX(0); }
+  .ll-app--rtl .ll-detail-pane { transform: translateX(-100%); }
+  .ll-app--rtl .ll-detail-pane--open { transform: translateX(0); }
+
+  /* Toolbars wrap instead of overflowing. */
+  .ll-tail-controls { flex-wrap: wrap; }
+}
+
+@media (max-width: 480px) {
+  .ll-topbar__title { display: none; }
+}

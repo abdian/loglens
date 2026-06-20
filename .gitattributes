@@ -1,0 +1,18 @@
+# Keep built assets in the dist tarball; exclude dev-only sources so
+# `composer require` pulls a lean package with pre-built UI but no toolchain.
+/.github            export-ignore
+/art                export-ignore
+/resources/js       export-ignore
+/resources/css      export-ignore
+/tests              export-ignore
+/.editorconfig      export-ignore
+/.gitattributes     export-ignore
+/phpunit.xml.dist   export-ignore
+/vite.config.js     export-ignore
+/package.json       export-ignore
+/package-lock.json  export-ignore
+/postcss.config.js  export-ignore
+/tailwind.config.js export-ignore
+
+* text=auto eol=lf
+*.php text eol=lf

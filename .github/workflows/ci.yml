@@ -1,0 +1,118 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+
+# Use bash on every OS so version constraints like "^8.0" survive the shell
+# (PowerShell/cmd mangle the caret, collapsing "^8.0" to "8.0" on Windows).
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  # Every claimed Laravel × PHP combination is actually exercised — a support
+  # claim without a green CI leg does not ship. The matrix is enumerated
+  # explicitly via `include` only: mixing `include` entries that carry new keys
+  # (laravel/php/testbench) with top-level axes (os/stability) makes GitHub
+  # broadcast-and-overwrite them onto the axis cells, collapsing the whole grid
+  # down to the single last entry. Listing each job in full avoids that.
+  test:
+    name: L${{ matrix.laravel }} · PHP ${{ matrix.php }} · ${{ matrix.os }} · ${{ matrix.stability }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # ── Linux: every claimed Laravel × PHP pair, both dependency extremes ──
+          # Laravel 8/9 run prefer-stable only: at their absolute minimum versions
+          # testbench-core calls PHPUnit's getAnnotations(), which was removed in
+          # PHPUnit 9.5 — an upstream toolchain incompatibility, not a package one.
+          - { os: ubuntu-latest,  laravel: 8 , testbench: '^6.0',  php: '8.0', stability: prefer-stable }
+          - { os: ubuntu-latest,  laravel: 8 , testbench: '^6.0',  php: '8.1', stability: prefer-stable }
+          - { os: ubuntu-latest,  laravel: 9 , testbench: '^7.0',  php: '8.0', stability: prefer-stable }
+          - { os: ubuntu-latest,  laravel: 9 , testbench: '^7.0',  php: '8.2', stability: prefer-stable }
+          - { os: ubuntu-latest,  laravel: 10, testbench: '^8.0',  php: '8.1', stability: prefer-lowest }
+          - { os: ubuntu-latest,  laravel: 10, testbench: '^8.0',  php: '8.1', stability: prefer-stable }
+          - { os: ubuntu-latest,  laravel: 10, testbench: '^8.0',  php: '8.3', stability: prefer-lowest }
+          - { os: ubuntu-latest,  laravel: 10, testbench: '^8.0',  php: '8.3', stability: prefer-stable }
+          - { os: ubuntu-latest,  laravel: 11, testbench: '^9.0',  php: '8.2', stability: prefer-lowest }
+          - { os: ubuntu-latest,  laravel: 11, testbench: '^9.0',  php: '8.2', stability: prefer-stable }
+          - { os: ubuntu-latest,  laravel: 11, testbench: '^9.0',  php: '8.4', stability: prefer-lowest }
+          - { os: ubuntu-latest,  laravel: 11, testbench: '^9.0',  php: '8.4', stability: prefer-stable }
+          - { os: ubuntu-latest,  laravel: 12, testbench: '^10.0', php: '8.3', stability: prefer-lowest }
+          - { os: ubuntu-latest,  laravel: 12, testbench: '^10.0', php: '8.3', stability: prefer-stable }
+          - { os: ubuntu-latest,  laravel: 12, testbench: '^10.0', php: '8.5', stability: prefer-lowest }
+          - { os: ubuntu-latest,  laravel: 12, testbench: '^10.0', php: '8.5', stability: prefer-stable }
+          - { os: ubuntu-latest,  laravel: 13, testbench: '^11.0', php: '8.4', stability: prefer-lowest }
+          - { os: ubuntu-latest,  laravel: 13, testbench: '^11.0', php: '8.4', stability: prefer-stable }
+          - { os: ubuntu-latest,  laravel: 13, testbench: '^11.0', php: '8.5', stability: prefer-lowest }
+          - { os: ubuntu-latest,  laravel: 13, testbench: '^11.0', php: '8.5', stability: prefer-stable }
+          # ── Windows: each Laravel proven on its ceiling PHP (path/locking smoke) ──
+          - { os: windows-latest, laravel: 8 , testbench: '^6.6',  php: '8.1', stability: prefer-stable }
+          - { os: windows-latest, laravel: 9 , testbench: '^7.6',  php: '8.2', stability: prefer-stable }
+          - { os: windows-latest, laravel: 10, testbench: '^8.0',  php: '8.3', stability: prefer-stable }
+          - { os: windows-latest, laravel: 11, testbench: '^9.0',  php: '8.4', stability: prefer-stable }
+          - { os: windows-latest, laravel: 12, testbench: '^10.0', php: '8.5', stability: prefer-stable }
+          - { os: windows-latest, laravel: 13, testbench: '^11.0', php: '8.5', stability: prefer-stable }
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          # fileinfo: league/flysystem 1.x (Laravel 8/9 deps) hard-requires it,
+          # and it is not enabled by default on the Windows setup-php build.
+          extensions: pdo_sqlite, sqlite3, zlib, zip, mbstring, fileinfo
+          ini-values: error_reporting=E_ALL
+          coverage: none
+
+      - name: Constrain framework + testbench
+        run: |
+          composer require "laravel/framework:^${{ matrix.laravel }}.0" "orchestra/testbench:${{ matrix.testbench }}" --no-update --no-interaction --dev
+
+      # Windows can't load ext-pcntl / ext-posix, which testbench's dev tree
+      # (laravel/pail, via orchestra/workbench) hard-requires. Pail is never
+      # exercised by the suite, so ignoring those platform reqs lets the install
+      # resolve while leaving the package itself fully tested on Windows.
+      #
+      # block-insecure: the EOL Laravel lines (8/9/10) carry framework-level
+      # security advisories across their whole range, which modern Composer
+      # refuses to resolve by default. We're verifying API compatibility, not
+      # shipping these versions, so the advisory gate is turned off for CI only.
+      - name: Install dependencies
+        run: |
+          composer config audit.block-insecure false
+          composer update --${{ matrix.stability }} --prefer-dist --no-interaction --no-progress ${{ runner.os == 'Windows' && '--ignore-platform-req=ext-pcntl --ignore-platform-req=ext-posix' || '' }}
+
+      - name: Run tests
+        run: vendor/bin/phpunit
+
+  # Octane state-leak smoke: scoped bindings, no
+  # mutable statics, forced polling transport.
+  octane:
+    name: Octane (Swoole) smoke
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: pdo_sqlite, sqlite3, zlib, zip, mbstring, swoole
+          coverage: none
+      - run: |
+          composer config audit.block-insecure false
+          composer update --prefer-dist --no-interaction --no-progress
+      - run: vendor/bin/phpunit --group octane
+
+  lint:
+    name: PHP syntax lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with: { php-version: '8.3' }
+      - run: find src -name '*.php' -print0 | xargs -0 -n1 php -l
